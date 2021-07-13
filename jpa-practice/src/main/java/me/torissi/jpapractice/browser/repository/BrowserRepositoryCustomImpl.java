@@ -1,8 +1,11 @@
 package me.torissi.jpapractice.browser.repository;
 
 
+import static me.torissi.jpapractice.browser.entity.QBrowserHistoryLog.browserHistoryLog;
+
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQueryFactory;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +21,12 @@ public class BrowserRepositoryCustomImpl implements BrowserRepositoryCustom {
 
   @Override
   public List<BrowserHistoryLogResponse> getBrowserStatics(Search search) {
-    QBrowserHistoryLog browserHistoryLog = QBrowserHistoryLog.browserHistoryLog;
     QBrowserHistoryLog browserHistoryLogSub = new QBrowserHistoryLog("browserHistoryLogSub");
 
-    double dayCount = ChronoUnit.DAYS.between(search.getSdt(), search.getEdt());
+    LocalDate firstDay = search.getSdt().withDayOfMonth(1);
+    LocalDate lastDay = search.getEdt().withDayOfMonth(search.getEdt().getDayOfMonth());
+    double dayCount = ChronoUnit.DAYS.between(firstDay, lastDay);
+
     List<BrowserHistoryLogResponse> statics = queryFactory
         .select(new QBrowserHistoryLogResponse(
             browserHistoryLog.year,
@@ -32,19 +37,24 @@ public class BrowserRepositoryCustomImpl implements BrowserRepositoryCustom {
                 .from(browserHistoryLogSub)
                 .where(
                     browserHistoryLogSub.nation.eq(search.getNation()),
-                    browserHistoryLogSub.logDate.goe(search.getSdt().withDayOfMonth(1)),
-                    browserHistoryLogSub.logDate.before(search.getEdt().withDayOfMonth(1))
+                    browserHistoryLogSub.logDate.goe(firstDay),
+                    browserHistoryLogSub.logDate.loe(lastDay),
+                    browserHistoryLogSub.year.eq(browserHistoryLog.year),
+                    browserHistoryLogSub.month.eq(browserHistoryLog.month)
                 )
                 .groupBy(browserHistoryLogSub.type)
-                .having(browserHistoryLogSub.type.eq(browserHistoryLog.type))
+                .having(
+                    browserHistoryLogSub.type.eq(browserHistoryLog.type)
+                )
         ))
         .from(browserHistoryLog)
         .where(
             browserHistoryLog.delFlag.isFalse(),
             browserHistoryLog.useFlag.isTrue(),
-            browserHistoryLog.logDate.goe(search.getSdt().withDayOfMonth(1)),
-            browserHistoryLog.logDate.before(search.getEdt().plusMonths(1).withDayOfMonth(1))
-        )
+            browserHistoryLog.logDate.goe(firstDay),
+            browserHistoryLog.logDate.loe(lastDay),
+            browserHistoryLog.nation.eq(search.getNation())
+            )
         .orderBy(
             browserHistoryLog.year.asc(),
             browserHistoryLog.month.asc()
