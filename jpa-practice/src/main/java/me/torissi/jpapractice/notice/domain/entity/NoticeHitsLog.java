@@ -28,13 +28,16 @@ public class NoticeHitsLog extends EntityExtension {
 
   private LocalDateTime logDate;
 
-  private NoticeHitsLog(Notice notice, LocalDateTime logDate) {
+  private String nation;
+
+  private NoticeHitsLog(Notice notice, LocalDateTime logDate, String nation) {
     this.notice = notice;
     this.logDate = logDate;
+    this.nation = nation;
   }
 
-  public static NoticeHitsLog createEntity(Notice notice, LocalDateTime logDate) {
-    return new NoticeHitsLog(notice, logDate);
+  public static NoticeHitsLog createEntity(Notice notice, LocalDateTime logDate, String nation) {
+    return new NoticeHitsLog(notice, logDate, nation);
   }
 
 }

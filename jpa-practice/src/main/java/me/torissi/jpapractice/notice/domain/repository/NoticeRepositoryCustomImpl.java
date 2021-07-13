@@ -13,11 +13,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import me.torissi.jpapractice.notice.domain.dto.response.NoticeAllResponse;
+import me.torissi.jpapractice.notice.domain.dto.response.NoticeStatisticsNationResponse;
 import me.torissi.jpapractice.notice.domain.dto.response.NoticeStatisticsResponse;
+import me.torissi.jpapractice.notice.domain.dto.response.QNoticeStatisticsNationResponse;
 import me.torissi.jpapractice.notice.domain.dto.response.QNoticeStatisticsResponse;
 import me.torissi.jpapractice.notice.domain.entity.Notice;
 import me.torissi.jpapractice.notice.domain.vo.Search;
 import org.modelmapper.ModelMapper;
+import org.springframework.util.StringUtils;
 
 @RequiredArgsConstructor
 public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom{
@@ -33,6 +36,7 @@ public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom{
         .setPropertyCondition(isNotNull())
         .setMatchingStrategy(STRICT);
     /*
+     * 각 게시글의 제목, 기간 조건에 부합하는 조회수 / 일 수 (기간 조회수의 평균 조회수) 조회하기
      *        SELECT  T.title,
      *                (
      *                    SELECT  COUNT(L.*)
@@ -50,7 +54,7 @@ public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom{
         .select(new QNoticeStatisticsResponse(
             notice.title,
             JPAExpressions
-                .select(noticeHitsLog.count().castToNum(Double.class).divide(division))
+                .select(noticeHitsLog.count().castToNum(Double.class).divide(division)) //기간 동안의 게시글 조회수(기간 동안의 각 게시글 조회 log 수) / 기간 일 수 => 이 기간 동안 평균적으로 몇 번 게시글을 봤냐
                 .from(noticeHitsLog)
                 .where(
                     noticeHitsLog.notice.eq(notice),
@@ -113,20 +117,58 @@ public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom{
     return null;
   }
 
-/*  public NoticeAllResponse getNoticeAll2(Search search) {
-    JPQLQuery<?> query = queryFactory
+  @Override
+  public List<NoticeAllResponse> getNoticeAllNation(Search search) {
+    ModelMapper modelMapper = new ModelMapper();
+
+    modelMapper
+        .getConfiguration()
+        .setPropertyCondition(isNotNull())
+        .setMatchingStrategy(STRICT);
+
+    double division = ChronoUnit.DAYS.between(search.getStartDt(), search.getEndDt());
+    JPQLQuery<Double> nationQuery = JPAExpressions
         .select(
-            notice.title.count(),
-            notice.createDt.between(search.getStartDt(), search.getEndDt()).count().as("dayCount")
+            noticeHitsLog.count().castToNum(Double.class)
         )
-        .from(notice)
+        .from(noticeHitsLog)
         .where(
-            notice.delFlag.isFalse(),
-            notice.useFlag.isTrue(),
-            notice.logList.any().logDate.goe(search.getStartDt().atStartOfDay()),
-            notice.logList.any().logDate.before(search.getEndDt().plusDays(1).atStartOfDay())
+            noticeHitsLog.notice.eq(notice),
+            noticeHitsLog.logDate.goe(search.getStartDt().atStartOfDay()),
+            noticeHitsLog.logDate.before(search.getEndDt().plusDays(1).atStartOfDay())
         );
 
-    return dto;
-  }*/
+    if (StringUtils.hasLength(search.getNation())) {
+      nationQuery.where(noticeHitsLog.nation.eq(search.getNation()));
+    }
+
+    List<NoticeStatisticsNationResponse> statistics = queryFactory
+        .select(new QNoticeStatisticsNationResponse(
+                notice.title,
+                JPAExpressions
+                    .select(
+                        noticeHitsLog.count().castToNum(Double.class).divide(division)
+                    )
+                    .from(noticeHitsLog)
+                    .where(
+                        noticeHitsLog.notice.eq(notice),
+                        noticeHitsLog.logDate.goe(search.getStartDt().atStartOfDay()),
+                        noticeHitsLog.logDate.before(search.getEndDt().plusDays(1).atStartOfDay())
+                    ),
+                nationQuery
+            )
+        ).from(notice)
+        .where(notice.delFlag.isFalse(), notice.useFlag.isTrue())
+        .fetch();
+
+    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    statistics.forEach(item -> System.out.println("TITLE: " + item.getTitle() + " / HIT: " + item.getHit() + " / " + search.getNation() + item.getNationalHit()));
+    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+
+    return null;
+  }
 }

@@ -7,4 +7,6 @@ import me.torissi.jpapractice.notice.domain.vo.Search;
 public interface NoticeRepositoryCustom {
 
   List<NoticeAllResponse> getNoticeAll(Search search);
+
+  List<NoticeAllResponse> getNoticeAllNation(Search search);
 }

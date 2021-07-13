@@ -24,8 +24,6 @@ public class Notice extends EntityExtension {
 
   private String title;
 
-  private String nation;
-
   @OneToOne(fetch = FetchType.LAZY, mappedBy = "notice")
   private Attach attach;
 
