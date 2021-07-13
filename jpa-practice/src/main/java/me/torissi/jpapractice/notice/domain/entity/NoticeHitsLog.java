@@ -11,6 +11,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import me.torissi.jpapractice.common.enumerate.NationType;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -28,15 +29,15 @@ public class NoticeHitsLog extends EntityExtension {
 
   private LocalDateTime logDate;
 
-  private String nation;
+  private NationType nation;
 
-  private NoticeHitsLog(Notice notice, LocalDateTime logDate, String nation) {
+  private NoticeHitsLog(Notice notice, LocalDateTime logDate, NationType nation) {
     this.notice = notice;
     this.logDate = logDate;
     this.nation = nation;
   }
 
-  public static NoticeHitsLog createEntity(Notice notice, LocalDateTime logDate, String nation) {
+  public static NoticeHitsLog createEntity(Notice notice, LocalDateTime logDate, NationType nation) {
     return new NoticeHitsLog(notice, logDate, nation);
   }
 

@@ -1,12 +1,15 @@
 package me.torissi.jpapractice;
 
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
+import me.torissi.jpapractice.browser.entity.BrowserHistoryLog;
+import me.torissi.jpapractice.browser.repository.BrowserRepository;
+import me.torissi.jpapractice.browser.service.BrowserDomainService;
+import me.torissi.jpapractice.common.enumerate.BrowserType;
+import me.torissi.jpapractice.common.enumerate.NationType;
 import me.torissi.jpapractice.notice.domain.dto.response.NoticeAllResponse;
 import me.torissi.jpapractice.notice.domain.entity.Notice;
 import me.torissi.jpapractice.notice.domain.entity.NoticeHitsLog;
@@ -29,10 +32,62 @@ public class AppRunner implements ApplicationRunner {
   private NoticeHitsLogDomainService noticeHitsLogDomainService;
 
   @Autowired
+  private BrowserDomainService browserDomainService;
+
+  @Autowired
   private NoticeRepository noticeRepository;
+
+  @Autowired
+  private BrowserRepository browserRepository;
 
   @Override
   public void run(ApplicationArguments args) throws Exception {
+    //noticeCreate();
+    browserLogCreate();
+  }
+
+  private void browserLogCreate() {
+
+    for (int i = 0; i < 1000; i++) {
+      LocalDate logDate = getRandomLocalDate();
+      BrowserType[] browserTypes = BrowserType.values();
+      NationType[] nationTypes = NationType.values();
+      Random random = new Random();
+      int browserRandom = random.nextInt(6);
+      int nationRandom = random.nextInt(4);
+
+      BrowserHistoryLog browserLog = BrowserHistoryLog.createEntity(
+          browserTypes[browserRandom],
+          nationTypes[nationRandom],
+          logDate.getYear(),
+          logDate.getMonthValue(),
+          logDate
+      );
+
+      browserDomainService.create(browserLog);
+    }
+
+    Search search = new Search();
+
+    search.setSdt(LocalDate.of(2021, 2, 1));
+    search.setEdt(LocalDate.of(2021, 6, 30));
+    search.setNation(NationType.KOREA);
+
+    browserRepository.getBrowserStatics(search);
+
+  }
+
+  private LocalDate getRandomLocalDate() {
+    Random random = new Random();
+    long start = LocalDate.of(2020, 1, 1).toEpochDay();
+    long end = LocalDate.now().toEpochDay();
+
+    LocalDate logDate = LocalDate
+        .ofEpochDay(ThreadLocalRandom.current().nextLong(start, end));
+    return logDate;
+  }
+
+  private void noticeCreate() {
     Random random = new Random();
     long start = LocalDate.of(2020, 1, 1).toEpochDay();
     long end = LocalDate.now().toEpochDay();
@@ -47,7 +102,7 @@ public class AppRunner implements ApplicationRunner {
             .ofEpochDay(ThreadLocalRandom.current().nextLong(start, end))
             .atTime(random.nextInt(24), random.nextInt(60), random.nextInt(60));
 
-        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, "America"));
+        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, NationType.AMERICA));
       }
 
       for (int j = 10; j < 33; j++) {
@@ -55,7 +110,7 @@ public class AppRunner implements ApplicationRunner {
             .ofEpochDay(ThreadLocalRandom.current().nextLong(start, end))
             .atTime(random.nextInt(24), random.nextInt(60), random.nextInt(60));
 
-        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, "Korea"));
+        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, NationType.KOREA));
       }
 
       for (int j = 33; j < 60; j++) {
@@ -63,7 +118,7 @@ public class AppRunner implements ApplicationRunner {
             .ofEpochDay(ThreadLocalRandom.current().nextLong(start, end))
             .atTime(random.nextInt(24), random.nextInt(60), random.nextInt(60));
 
-        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, "China"));
+        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, NationType.CHINA));
       }
 
       for (int j = 60; j < 100; j++) {
@@ -71,7 +126,7 @@ public class AppRunner implements ApplicationRunner {
             .ofEpochDay(ThreadLocalRandom.current().nextLong(start, end))
             .atTime(random.nextInt(24), random.nextInt(60), random.nextInt(60));
 
-        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, "Japan"));
+        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, NationType.JAPAN));
       }
     }
 
@@ -85,7 +140,7 @@ public class AppRunner implements ApplicationRunner {
             .ofEpochDay(ThreadLocalRandom.current().nextLong(start, end))
             .atTime(random.nextInt(24), random.nextInt(60), random.nextInt(60));
 
-        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, "America"));
+        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, NationType.AMERICA));
       }
 
       for (int j = 20; j < 60; j++) {
@@ -93,7 +148,7 @@ public class AppRunner implements ApplicationRunner {
             .ofEpochDay(ThreadLocalRandom.current().nextLong(start, end))
             .atTime(random.nextInt(24), random.nextInt(60), random.nextInt(60));
 
-        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, "Korea"));
+        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, NationType.KOREA));
       }
 
       for (int j = 60; j < 80; j++) {
@@ -101,7 +156,7 @@ public class AppRunner implements ApplicationRunner {
             .ofEpochDay(ThreadLocalRandom.current().nextLong(start, end))
             .atTime(random.nextInt(24), random.nextInt(60), random.nextInt(60));
 
-        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, "China"));
+        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, NationType.CHINA));
       }
 
       for (int j = 80; j < 100; j++) {
@@ -109,16 +164,16 @@ public class AppRunner implements ApplicationRunner {
             .ofEpochDay(ThreadLocalRandom.current().nextLong(start, end))
             .atTime(random.nextInt(24), random.nextInt(60), random.nextInt(60));
 
-        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, "Japan"));
+        noticeHitsLogDomainService.create(NoticeHitsLog.createEntity(notice, logDate, NationType.JAPAN));
       }
     }
 
     Search search = new Search();
 
-    search.setStartDt(LocalDate.of(2021, 6, 1));
-    search.setEndDt(LocalDate.of(2021, 6, 30));
+    search.setSdt(LocalDate.of(2021, 6, 1));
+    search.setEdt(LocalDate.of(2021, 6, 30));
     //search.setEndDt(LocalDate.now());
-    search.setNation("Korea");
+    search.setNation(NationType.KOREA);
 
     //List<NoticeAllResponse> list = noticeRepository.getNoticeAll(search);
     List<NoticeAllResponse> list = noticeRepository.getNoticeAllNation(search);

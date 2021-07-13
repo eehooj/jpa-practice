@@ -10,16 +10,16 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.JPQLQueryFactory;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import me.torissi.jpapractice.common.enumerate.NationType;
 import me.torissi.jpapractice.notice.domain.dto.response.NoticeAllResponse;
 import me.torissi.jpapractice.notice.domain.dto.response.NoticeStatisticsNationResponse;
 import me.torissi.jpapractice.notice.domain.dto.response.NoticeStatisticsResponse;
 import me.torissi.jpapractice.notice.domain.dto.response.QNoticeStatisticsNationResponse;
 import me.torissi.jpapractice.notice.domain.dto.response.QNoticeStatisticsResponse;
-import me.torissi.jpapractice.notice.domain.entity.Notice;
 import me.torissi.jpapractice.notice.domain.vo.Search;
 import org.modelmapper.ModelMapper;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 @RequiredArgsConstructor
@@ -49,7 +49,7 @@ public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom{
      *         WHERE  T.del_flag = false
      *           AND  T.use_flag = true
      */
-    double division = ChronoUnit.DAYS.between(search.getStartDt(), search.getEndDt());
+    double division = ChronoUnit.DAYS.between(search.getSdt(), search.getEdt());
     List<NoticeStatisticsResponse> statistics = queryFactory
         .select(new QNoticeStatisticsResponse(
             notice.title,
@@ -58,8 +58,8 @@ public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom{
                 .from(noticeHitsLog)
                 .where(
                     noticeHitsLog.notice.eq(notice),
-                    noticeHitsLog.logDate.goe(search.getStartDt().atStartOfDay()),
-                    noticeHitsLog.logDate.before(search.getEndDt().plusDays(1).atStartOfDay())
+                    noticeHitsLog.logDate.goe(search.getSdt().atStartOfDay()),
+                    noticeHitsLog.logDate.before(search.getEdt().plusDays(1).atStartOfDay())
                 )
         )).from(notice)
         .where(notice.delFlag.isFalse(), notice.useFlag.isTrue())
@@ -126,7 +126,7 @@ public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom{
         .setPropertyCondition(isNotNull())
         .setMatchingStrategy(STRICT);
 
-    double division = ChronoUnit.DAYS.between(search.getStartDt(), search.getEndDt());
+    double division = ChronoUnit.DAYS.between(search.getSdt(), search.getEdt());
     JPQLQuery<Double> nationQuery = JPAExpressions
         .select(
             noticeHitsLog.count().castToNum(Double.class)
@@ -134,11 +134,11 @@ public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom{
         .from(noticeHitsLog)
         .where(
             noticeHitsLog.notice.eq(notice),
-            noticeHitsLog.logDate.goe(search.getStartDt().atStartOfDay()),
-            noticeHitsLog.logDate.before(search.getEndDt().plusDays(1).atStartOfDay())
+            noticeHitsLog.logDate.goe(search.getSdt().atStartOfDay()),
+            noticeHitsLog.logDate.before(search.getEdt().plusDays(1).atStartOfDay())
         );
 
-    if (StringUtils.hasLength(search.getNation())) {
+    if (!ObjectUtils.isEmpty(search.getNation())) {
       nationQuery.where(noticeHitsLog.nation.eq(search.getNation()));
     }
 
@@ -152,8 +152,8 @@ public class NoticeRepositoryCustomImpl implements NoticeRepositoryCustom{
                     .from(noticeHitsLog)
                     .where(
                         noticeHitsLog.notice.eq(notice),
-                        noticeHitsLog.logDate.goe(search.getStartDt().atStartOfDay()),
-                        noticeHitsLog.logDate.before(search.getEndDt().plusDays(1).atStartOfDay())
+                        noticeHitsLog.logDate.goe(search.getSdt().atStartOfDay()),
+                        noticeHitsLog.logDate.before(search.getEdt().plusDays(1).atStartOfDay())
                     ),
                 nationQuery
             )
