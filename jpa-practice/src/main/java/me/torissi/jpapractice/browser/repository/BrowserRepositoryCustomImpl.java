@@ -24,7 +24,7 @@ public class BrowserRepositoryCustomImpl implements BrowserRepositoryCustom {
     QBrowserHistoryLog browserHistoryLogSub = new QBrowserHistoryLog("browserHistoryLogSub");
 
     LocalDate firstDay = search.getSdt().withDayOfMonth(1);
-    LocalDate lastDay = search.getEdt().withDayOfMonth(search.getEdt().getDayOfMonth());
+    LocalDate lastDay = search.getEdt().withDayOfMonth(search.getEdt().lengthOfMonth());
     double dayCount = ChronoUnit.DAYS.between(firstDay, lastDay);
 
     List<BrowserHistoryLogResponse> statics = queryFactory
