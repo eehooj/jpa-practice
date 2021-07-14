@@ -21,7 +21,8 @@ public class BrowserRepositoryCustomImpl implements BrowserRepositoryCustom {
 
   @Override
   public List<BrowserHistoryLogResponse> getBrowserStatics(Search search) {
-    QBrowserHistoryLog browserHistoryLogSub = new QBrowserHistoryLog("browserHistoryLogSub");
+    QBrowserHistoryLog browserHistoryLogSub = new QBrowserHistoryLog("browserHistoryLogSub"); // 올ㅋ
+    QBrowserHistoryLog browserHistoryLogSub2 = new QBrowserHistoryLog("browserHistoryLogSub2");
 
     LocalDate firstDay = search.getSdt().withDayOfMonth(1);
     LocalDate lastDay = search.getEdt().withDayOfMonth(search.getEdt().lengthOfMonth());
@@ -32,12 +33,23 @@ public class BrowserRepositoryCustomImpl implements BrowserRepositoryCustom {
             browserHistoryLog.month,
             browserHistoryLog.type,
             JPAExpressions
-                .select(browserHistoryLogSub.type.count().castToNum(Double.class).divide(dayCount))
+                .select(
+                    browserHistoryLogSub.count().castToNum(Double.class)
+                    .divide(
+                        JPAExpressions
+                            .select(browserHistoryLogSub2.count())
+                            .from(browserHistoryLogSub2)
+                            .where(
+                                browserHistoryLogSub2.nation.eq(search.getNation()),
+                                browserHistoryLogSub2.year.eq(browserHistoryLogSub.year),
+                                browserHistoryLogSub2.month.eq(browserHistoryLogSub.month)
+                            )
+                    )
+                    .multiply(100)
+                )
                 .from(browserHistoryLogSub)
                 .where(
                     browserHistoryLogSub.nation.eq(search.getNation()),
-                    browserHistoryLogSub.logDate.goe(firstDay),
-                    browserHistoryLogSub.logDate.loe(lastDay),
                     browserHistoryLogSub.year.eq(browserHistoryLog.year),
                     browserHistoryLogSub.month.eq(browserHistoryLog.month)
                 )
@@ -56,9 +68,10 @@ public class BrowserRepositoryCustomImpl implements BrowserRepositoryCustom {
             )
         .orderBy(
             browserHistoryLog.year.asc(),
-            browserHistoryLog.month.asc()
+            browserHistoryLog.month.asc(),
+            browserHistoryLog.type.asc()// type 정렬 추가
         )
-        .distinct()
+        .distinct() // 올ㅋ
         .fetch();
 
     System.out.println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
