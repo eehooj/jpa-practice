@@ -15,7 +15,7 @@ public class EmbeddedRedisConfig {
 
   @PostConstruct
   public void redisServer() {
-    redisServer = redisServer = RedisServer
+    redisServer = RedisServer
         .builder()
         .port(redisProperties.getPort())
         .setting("maxheap 512MB")
