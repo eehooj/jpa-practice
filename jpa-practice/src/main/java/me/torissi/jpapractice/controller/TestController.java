@@ -23,8 +23,8 @@ public class TestController {
     noticeRepository.getNoticeAllNation(search);
   }
 
-  @GetMapping("/browser-statics")
+  /*@GetMapping("/browser-statics")
   public List<BrowserHistoryLogResponse> browserStatics(@ModelAttribute Search search) {
     return browserRepository.getBrowserStatics(search);
-  }
+  }*/
 }

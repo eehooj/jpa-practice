@@ -2,6 +2,10 @@ spring:
   session:
     store-type: none
 
+  redis:
+    host: localhost
+    port: 16379
+
   jpa:
     show-sql: true
     database: h2
